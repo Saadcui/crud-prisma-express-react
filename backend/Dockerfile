@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Copy only essential files first (for better caching)
 COPY package*.json ./
 COPY prisma ./prisma/
-COPY .env ./
+COPY ./ ./
 COPY jsconfig.json ./
 
 # Install dependencies
