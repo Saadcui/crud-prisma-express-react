@@ -2,37 +2,35 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - dev
+    branches: [main, dev]
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [main, dev]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:8
+      postgres:
+        image: postgres:15
         env:
-          MYSQL_ROOT_PASSWORD: 1234
-          MYSQL_DATABASE: prisma_react
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mydb
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd "mysqladmin ping --silent"
+          --health-cmd "pg_isready -U user"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 3
+          --health-retries 5
 
     env:
-      DATABASE_URL: mysql://root:1234@127.0.0.1:3306/prisma_react
+      DATABASE_URL: postgresql://user:password@localhost:5432/mydb
 
     steps:
-      - name: Checkout repo
+      # Stage 1: Build & Install
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -40,26 +38,35 @@ jobs:
         with:
           node-version: 18
 
-      # Backend dependencies
       - name: Install backend dependencies
         run: |
           cd backend
-          npm install
+          npm ci
 
-      # Frontend dependencies
       - name: Install frontend dependencies
         run: |
           cd frontend
-          npm install
+          npm ci
 
-      # Run backend migrations and tests
+      # Stage 2: Lint / Security Scan
+      - name: Lint backend
+        run: |
+          cd backend
+          npm run lint || echo "Lint warnings found"
+
+      - name: Security audit
+        run: |
+          cd backend
+          npm audit --audit-level=moderate || echo "Security issues found"
+
+      # Stage 3: Test (with DB)
       - name: Run backend tests
         run: |
           cd backend
           npx prisma migrate deploy
-          echo "No test script defined, skipping npm test" || true
+          npm test
 
-      # Docker login only for main branch
+      # Stage 4: Build Docker Images
       - name: Login to DockerHub
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v2
@@ -67,18 +74,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build Docker images
       - name: Build backend Docker image
         run: docker build -t your-dockerhub-username/backend:latest ./backend
 
       - name: Build frontend Docker image
         run: docker build -t your-dockerhub-username/frontend:latest ./frontend
 
-      # Push Docker images only for main branch
-      - name: Push backend Docker image
+      # Stage 5: Deploy (only on main)
+      - name: Push Docker images
         if: github.ref == 'refs/heads/main'
-        run: docker push your-dockerhub-username/backend:latest
+        run: |
+          docker push your-dockerhub-username/backend:latest
+          docker push your-dockerhub-username/frontend:latest
 
-      - name: Push frontend Docker image
+      - name: Deploy to server (example)
         if: github.ref == 'refs/heads/main'
-        run: docker push your-dockerhub-username/frontend:latest
+        run: |
+          echo "Deploying containers to production server..."
+          # Example: ssh user@your-server "docker pull your-dockerhub-username/backend:latest && docker compose up -d"
