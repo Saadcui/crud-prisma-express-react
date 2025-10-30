@@ -27,22 +27,16 @@ jobs:
       DATABASE_URL: mysql://root:1234@127.0.0.1:3306/prisma_react
 
     steps:
-      # Stage 1: Checkout & Setup
+      # Stage 1: Build & Install
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'npm'
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
 
-      # Stage 2: Install Dependencies
       - name: Install backend dependencies
-<<<<<<< HEAD
         run: |
           cd backend
           npm ci
@@ -61,82 +55,28 @@ jobs:
           npm audit --audit-level=moderate || echo "Security issues found"
       # Stage 3: Test (with DB)
       - name: Run backend tests
-=======
-        run: npm ci
-        working-directory: ./backend
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
-
-      # Stage 3: Lint & Security
-      - name: Lint backend
-        run: npm run lint || echo "Lint warnings found"
-        working-directory: ./backend
-
-      - name: Security audit
-        run: npm audit --audit-level=moderate || echo "Security issues found"
-        working-directory: ./backend
-
-      # Stage 4: Test with DB
-      - name: Wait for MySQL to be ready
         run: |
-          timeout 60s bash -c 'until mysqladmin ping -h 127.0.0.1 -u root --password=1234 --silent; do sleep 2; done' || echo "MySQL not ready"
-
-      - name: Run Prisma migration and backend tests
->>>>>>> c5b9e9b04c3e469c517acbf2ab024c5456bf9fb1
-        run: |
+          cd backend
           npx prisma migrate deploy
           npm test
-<<<<<<< HEAD
       # Stage 4: Build Docker Images
       - name: Login to DockerHub
-=======
-        working-directory: ./backend
-
-      # === Docker Build & Push (main branch only) ===
-      - name: Set up Docker Buildx
->>>>>>> c5b9e9b04c3e469c517acbf2ab024c5456bf9fb1
         if: github.ref == 'refs/heads/main'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-<<<<<<< HEAD
       - name: Build backend Docker image
         run: docker build -t your-dockerhub-username/backend:latest ./backend
 
       - name: Build frontend Docker image
         run: docker build -t your-dockerhub-username/frontend:latest ./frontend
-=======
-      - name: Build and push backend Docker image
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: saadcui/backend:latest,saadcui/backend:${{ github.sha }}
 
-      - name: Build and push frontend Docker image
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: saadcui/frontend:latest,saadcui/frontend:${{ github.sha }}
->>>>>>> c5b9e9b04c3e469c517acbf2ab024c5456bf9fb1
-
-      - name: Deployment confirmation logs
+      # Stage 5: Deploy (only on main)
+      - name: Push Docker images
         if: github.ref == 'refs/heads/main'
         run: |
-<<<<<<< HEAD
           docker push your-dockerhub-username/backend:latest
           docker push your-dockerhub-username/frontend:latest
       - name: Deploy to server (example)
@@ -144,9 +84,3 @@ jobs:
         run: |
           echo "Deploying containers to production server..."
           # Example: ssh user@your-server "docker pull your-dockerhub-username/backend:latest && docker compose up -d"
-=======
-          echo "✅ Docker images successfully pushed to Docker Hub!"
-          echo "Backend:  https://hub.docker.com/r/saadcui/backend"
-          echo "Frontend: https://hub.docker.com/r/saadcui/frontend"
-          echo "Tags: latest, ${{ github.sha }}"
->>>>>>> c5b9e9b04c3e469c517acbf2ab024c5456bf9fb1
