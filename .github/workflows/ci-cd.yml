@@ -74,10 +74,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build backend Docker image
-        run: docker build -t your-dockerhub-username/backend:latest ./backend
+        run: docker build -t saadcui/backend:latest ./backend
 
       - name: Build frontend Docker image
-        run: docker build -t your-dockerhub-username/frontend:latest ./frontend
+        run: docker build -t saadcui/frontend:latest ./frontend
 
       # Stage 5: Deploy (only on main)
       - name: Push Docker images
