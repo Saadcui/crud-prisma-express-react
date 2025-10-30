@@ -11,22 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
-        image: postgres:15
+      mysql:
+        image: mysql:8
         env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: mydb
+          MYSQL_ROOT_PASSWORD: 1234
+          MYSQL_DATABASE: prisma_react
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
-          --health-cmd "pg_isready -U user"
+          --health-cmd "mysqladmin ping --silent"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 3
 
     env:
-      DATABASE_URL: postgresql://user:password@localhost:5432/mydb
+      DATABASE_URL: mysql://root:1234@127.0.0.1:3306/prisma_react
 
     steps:
       # Stage 1: Build & Install
