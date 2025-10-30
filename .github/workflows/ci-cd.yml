@@ -23,7 +23,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 3
-
     env:
       DATABASE_URL: mysql://root:1234@127.0.0.1:3306/prisma_react
 
@@ -41,30 +40,25 @@ jobs:
         run: |
           cd backend
           npm ci
-
       - name: Install frontend dependencies
         run: |
           cd frontend
           npm ci
-
       # Stage 2: Lint / Security Scan
       - name: Lint backend
         run: |
           cd backend
           npm run lint || echo "Lint warnings found"
-
       - name: Security audit
         run: |
           cd backend
           npm audit --audit-level=moderate || echo "Security issues found"
-
       # Stage 3: Test (with DB)
       - name: Run backend tests
         run: |
           cd backend
           npx prisma migrate deploy
           npm test
-
       # Stage 4: Build Docker Images
       - name: Login to DockerHub
         if: github.ref == 'refs/heads/main'
@@ -74,20 +68,19 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build backend Docker image
-        run: docker build -t saadcui/backend:latest ./backend
+        run: docker build -t your-dockerhub-username/backend:latest ./backend
 
       - name: Build frontend Docker image
-        run: docker build -t saadcui/frontend:latest ./frontend
+        run: docker build -t your-dockerhub-username/frontend:latest ./frontend
 
       # Stage 5: Deploy (only on main)
       - name: Push Docker images
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push saadcui/backend:latest
-          docker push saadcui/frontend:latest
-
+          docker push your-dockerhub-username/backend:latest
+          docker push your-dockerhub-username/frontend:latest
       - name: Deploy to server (example)
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Deploying containers to production server..."
-          # Example: ssh user@your-server "docker pull saadcui/backend:latest && docker compose up -d"
+          # Example: ssh user@your-server "docker pull your-dockerhub-username/backend:latest && docker compose up -d"
