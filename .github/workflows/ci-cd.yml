@@ -83,11 +83,11 @@ jobs:
       - name: Push Docker images
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push your-dockerhub-username/backend:latest
-          docker push your-dockerhub-username/frontend:latest
+          docker push saadcui/backend:latest
+          docker push saadcui/frontend:latest
 
       - name: Deploy to server (example)
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Deploying containers to production server..."
-          # Example: ssh user@your-server "docker pull your-dockerhub-username/backend:latest && docker compose up -d"
+          # Example: ssh user@your-server "docker pull saadcui/backend:latest && docker compose up -d"
