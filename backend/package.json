@@ -6,7 +6,8 @@
     "main": "index.js",
     "scripts": {
         "dev": "nodemon index.js",
-        "start": "node index.js"
+        "start": "node index.js",
+           "test": "echo \"No tests yet\""
     },
     "author": "Faisal Fajri",
     "license": "ISC",
