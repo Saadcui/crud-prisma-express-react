@@ -73,7 +73,6 @@ jobs:
       - name: Build frontend Docker image
         run: docker build -t your-dockerhub-username/frontend:latest ./frontend
 
-      # Stage 5: Deploy (only on main)
       - name: Push Docker images
         if: github.ref == 'refs/heads/main'
         run: |
