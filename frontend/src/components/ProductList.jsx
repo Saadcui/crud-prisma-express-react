@@ -4,8 +4,9 @@ import axios from 'axios'
 import useSWR, { mutate } from 'swr'
 
 const ProductList = () => {
+    const API_BASE = process.env.REACT_APP_API_URL || '/api'
     const fetcher = async () => {
-        const response = await axios.get('http://localhost:5000/products')
+        const response = await axios.get(`${API_BASE}/products`)
         return response.data
     }
 
@@ -15,7 +16,7 @@ const ProductList = () => {
     }
 
     const deleteProduct = async productId => {
-        await axios.delete(`http://localhost:5000/products/${productId}`)
+        await axios.delete(`${API_BASE}/products/${productId}`)
         mutate('products')
     }
 

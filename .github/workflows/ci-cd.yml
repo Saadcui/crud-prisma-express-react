@@ -150,6 +150,28 @@ jobs:
           kubectl apply -f k8s/deployment-redis.yaml
           kubectl apply -f k8s/deployment-backend.yaml
 
+      - name: Setup Helm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Create monitoring namespace
+        run: |
+          kubectl apply -f k8s/monitoring-namespace.yaml
+
+      - name: Install/upgrade kube-prometheus-stack
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+          helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+            --namespace monitoring \
+            --create-namespace \
+            -f k8s/monitoring-values.yaml \
+            --wait
+
+      - name: Apply ServiceMonitor for backend
+        run: |
+          kubectl apply -f k8s/servicemonitor-backend.yaml
+
       - name: Update backend image
         run: |
           kubectl -n dev set image deployment/backend \

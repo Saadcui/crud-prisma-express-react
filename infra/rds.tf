@@ -23,6 +23,15 @@ resource "aws_security_group" "rds" {
     cidr_blocks = [local.my_ip_cidr]
   }
 
+  # Allow access from EKS/VPC CIDR so pods can reach RDS
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+    description = "EKS/VPC access to MySQL"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

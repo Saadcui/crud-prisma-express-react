@@ -8,9 +8,10 @@ const EditProduct = () => {
     const navigate = useNavigate()
     const { id } = useParams()
 
+    const API_BASE = process.env.REACT_APP_API_URL || '/api'
     useEffect(() => {
         const getProductById = async () => {
-            const response = await axios.get(`http://localhost:5000/products/${id}`)
+            const response = await axios.get(`${API_BASE}/products/${id}`)
             setName(response.data.name)
             setPrice(response.data.price)
         }
@@ -19,7 +20,7 @@ const EditProduct = () => {
 
     const updateProduct = async e => {
         e.preventDefault()
-        await axios.patch(`http://localhost:5000/products/${id}`, { name: name, price: parseInt(price) })
+        await axios.patch(`${API_BASE}/products/${id}`, { name: name, price: parseInt(price) })
         navigate('/')
     }
 

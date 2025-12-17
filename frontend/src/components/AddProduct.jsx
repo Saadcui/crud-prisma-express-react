@@ -7,9 +7,10 @@ const AddProduct = () => {
     const [price, setPrice] = useState('')
     const navigate = useNavigate()
 
+    const API_BASE = process.env.REACT_APP_API_URL || '/api'
     const saveProduct = async e => {
         e.preventDefault()
-        await axios.post('http://localhost:5000/products', { name: name, price: parseInt(price) })
+        await axios.post(`${API_BASE}/products`, { name: name, price: parseInt(price) })
         navigate('/')
     }
 
