@@ -1,0 +1,60 @@
+---
+- name: Deploy CRUD stack to Kubernetes (dev)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    namespace: dev
+    k8s_dir: "{{ playbook_dir }}/../k8s"
+    backend_image: "<your-dockerhub-username>/crud-backend:latest"
+    app_port: "5000"
+    # Pass at runtime: -e "database_url=mysql://admin:admin123@<RDS_ENDPOINT_HOST>:3306/mydb"
+
+  tasks:
+    - name: Print kubecontext for visibility
+      ansible.builtin.shell: kubectl config current-context
+
+    - name: Ensure namespaces exist
+      ansible.builtin.shell: kubectl apply -f namespaces.yaml
+      args:
+        chdir: "{{ k8s_dir }}"
+
+    - name: Apply backend ConfigMap (non-secret)
+      ansible.builtin.shell: kubectl apply -f configmap-dev.yaml
+      args:
+        chdir: "{{ k8s_dir }}"
+
+    - name: Create/Update backend Secret (DATABASE_URL) from literal (idempotent)
+      ansible.builtin.shell: |
+        kubectl -n {{ namespace }} create secret generic backend-secrets \
+          --from-literal=DATABASE_URL='{{ database_url }}' \
+          --dry-run=client -o yaml | kubectl apply -f -
+      args:
+        chdir: "{{ k8s_dir }}"
+      when: database_url is defined
+
+    - name: Deploy Redis (cache)
+      ansible.builtin.shell: kubectl apply -f deployment-redis.yaml
+      args:
+        chdir: "{{ k8s_dir }}"
+
+    - name: Deploy backend (API)
+      ansible.builtin.shell: kubectl apply -f deployment-backend.yaml
+      args:
+        chdir: "{{ k8s_dir }}"
+
+    - name: Set backend container image (if provided)
+      ansible.builtin.shell: kubectl -n {{ namespace }} set image deploy/backend backend={{ backend_image }} --record
+      register: set_image_result
+      failed_when: false
+
+    - name: Show image update result
+      ansible.builtin.debug:
+        var: set_image_result.stdout
+
+    - name: Wait for backend rollout
+      ansible.builtin.shell: kubectl -n {{ namespace }} rollout status deploy/backend --timeout=180s
+
+    - name: Show pods and services
+      ansible.builtin.shell: kubectl -n {{ namespace }} get pods,svc -o wide
