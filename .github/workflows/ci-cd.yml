@@ -123,7 +123,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
       - name: Terraform init
         working-directory: infra
         run: terraform init -upgrade
@@ -131,7 +130,6 @@ jobs:
       - name: Terraform plan
         working-directory: infra
         run: terraform plan -out=tfplan
-
       - name: Terraform apply
         working-directory: infra
         run: terraform apply -auto-approve tfplan
